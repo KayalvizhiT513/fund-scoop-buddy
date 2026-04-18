@@ -1,42 +1,51 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,800&family=Inter:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* Editorial finance newsroom design system. All colors HSL. */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Cream paper background */
+    --background: 38 33% 96%;
+    --foreground: 20 14% 10%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 38 30% 99%;
+    --card-foreground: 20 14% 10%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 38 30% 99%;
+    --popover-foreground: 20 14% 10%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* Deep ink primary */
+    --primary: 20 14% 10%;
+    --primary-foreground: 38 33% 96%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 38 25% 90%;
+    --secondary-foreground: 20 14% 10%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 38 20% 92%;
+    --muted-foreground: 20 10% 38%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    /* Burnt amber accent */
+    --accent: 18 75% 48%;
+    --accent-foreground: 38 33% 96%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 72% 45%;
+    --destructive-foreground: 38 33% 96%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 30 15% 84%;
+    --input: 30 15% 84%;
+    --ring: 18 75% 48%;
 
-    --radius: 0.5rem;
+    --radius: 0.25rem;
+
+    /* Brand tokens */
+    --gradient-hero: linear-gradient(135deg, hsl(20 14% 10%) 0%, hsl(20 25% 18%) 60%, hsl(18 75% 28%) 100%);
+    --gradient-accent: linear-gradient(90deg, hsl(18 75% 48%), hsl(28 85% 55%));
+    --shadow-paper: 0 1px 0 hsl(30 15% 84%), 0 12px 32px -16px hsl(20 14% 10% / 0.18);
+    --shadow-lift: 0 24px 48px -24px hsl(20 14% 10% / 0.35);
 
     --sidebar-background: 0 0% 98%;
 
@@ -101,5 +110,27 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-feature-settings: 'ss01', 'cv11';
+  }
+
+  h1, h2, h3, .font-display {
+    font-family: 'Fraunces', Georgia, serif;
+    font-optical-sizing: auto;
+    letter-spacing: -0.02em;
+  }
+}
+
+@layer utilities {
+  .bg-hero { background: var(--gradient-hero); }
+  .bg-accent-gradient { background: var(--gradient-accent); }
+  .shadow-paper { box-shadow: var(--shadow-paper); }
+  .shadow-lift { box-shadow: var(--shadow-lift); }
+  .paper-grain {
+    background-image:
+      radial-gradient(hsl(20 14% 10% / 0.025) 1px, transparent 1px),
+      radial-gradient(hsl(20 14% 10% / 0.02) 1px, transparent 1px);
+    background-size: 16px 16px, 24px 24px;
+    background-position: 0 0, 8px 8px;
   }
 }
