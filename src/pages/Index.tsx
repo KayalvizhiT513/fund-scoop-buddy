@@ -68,6 +68,7 @@ const Index = () => {
       }
 
       setData(response as NewsletterResponse);
+      setHistoryKey((k) => k + 1);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to generate newsletter");
     } finally {
