@@ -74,7 +74,7 @@ const Index = () => {
     void load();
   }, []);
 
-  const totalItems = data?.newsletter.sections.reduce((sum, section) => sum + section.items.length, 0) ?? 0;
+  const totalItems = data?.newsletter?.sections?.reduce((sum, section) => sum + section.items.length, 0) ?? 0;
 
   return (
     <div className="min-h-screen bg-background text-foreground">
