@@ -176,7 +176,7 @@ const Index = () => {
               />
               <MetricCard
                 label="Watchlist Cues"
-                value={data.newsletter.watchlist.length}
+                value={data.newsletter?.watchlist?.length ?? 0}
                 caption="Entities and topics worth carrying into subsequent runs."
               />
             </section>
@@ -307,7 +307,7 @@ const Index = () => {
                 </p>
                 <h2 className="mt-3 font-display text-3xl">Carry-forward entities</h2>
                 <div className="mt-6 flex flex-wrap gap-3">
-                  {data.newsletter.watchlist.map((item) => (
+                  {(data.newsletter?.watchlist ?? []).map((item) => (
                     <span
                       key={item}
                       className="rounded-full border border-border/70 bg-white px-3 py-2 text-sm text-foreground"
