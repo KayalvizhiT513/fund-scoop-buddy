@@ -14,16 +14,101 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
-      [_ in never]: never
+      newsletter_runs_view: {
+        Row: {
+          created_at: string | null
+          headline: string | null
+          id: string | null
+          normalized_count: number | null
+          portfolio_id: string | null
+          raw_count: number | null
+          run_date: string | null
+          status:
+            | "queued"
+            | "running"
+            | "completed"
+            | "failed"
+            | "partial"
+            | null
+          summary: string | null
+          updated_at: string | null
+          watchlist: Json | null
+        }
+        Insert: {
+          created_at?: string | null
+          headline?: string | null
+          id?: string | null
+          normalized_count?: number | null
+          portfolio_id?: string | null
+          raw_count?: number | null
+          run_date?: string | null
+          status?:
+            | "queued"
+            | "running"
+            | "completed"
+            | "failed"
+            | "partial"
+            | null
+          summary?: string | null
+          updated_at?: string | null
+          watchlist?: Json | null
+        }
+        Update: {
+          created_at?: string | null
+          headline?: string | null
+          id?: string | null
+          normalized_count?: number | null
+          portfolio_id?: string | null
+          raw_count?: number | null
+          run_date?: string | null
+          status?:
+            | "queued"
+            | "running"
+            | "completed"
+            | "failed"
+            | "partial"
+            | null
+          summary?: string | null
+          updated_at?: string | null
+          watchlist?: Json | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "moderator" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +235,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "moderator", "user"],
+    },
   },
 } as const
