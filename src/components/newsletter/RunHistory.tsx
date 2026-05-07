@@ -25,7 +25,7 @@ export const RunHistory = ({ refreshKey }: { refreshKey: number }) => {
         .order("run_date", { ascending: false })
         .limit(14);
       if (!cancelled) {
-        setRuns((data as RunRow[]) ?? []);
+        setRuns(((data as unknown) as RunRow[]) ?? []);
         setLoading(false);
       }
     })();
