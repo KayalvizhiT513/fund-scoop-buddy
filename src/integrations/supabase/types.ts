@@ -37,7 +37,66 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      newsletter_runs_view: {
+        Row: {
+          created_at: string | null
+          headline: string | null
+          id: string | null
+          normalized_count: number | null
+          portfolio_id: string | null
+          raw_count: number | null
+          run_date: string | null
+          status:
+            | "queued"
+            | "running"
+            | "completed"
+            | "failed"
+            | "partial"
+            | null
+          summary: string | null
+          updated_at: string | null
+          watchlist: Json | null
+        }
+        Insert: {
+          created_at?: string | null
+          headline?: string | null
+          id?: string | null
+          normalized_count?: number | null
+          portfolio_id?: string | null
+          raw_count?: number | null
+          run_date?: string | null
+          status?:
+            | "queued"
+            | "running"
+            | "completed"
+            | "failed"
+            | "partial"
+            | null
+          summary?: string | null
+          updated_at?: string | null
+          watchlist?: Json | null
+        }
+        Update: {
+          created_at?: string | null
+          headline?: string | null
+          id?: string | null
+          normalized_count?: number | null
+          portfolio_id?: string | null
+          raw_count?: number | null
+          run_date?: string | null
+          status?:
+            | "queued"
+            | "running"
+            | "completed"
+            | "failed"
+            | "partial"
+            | null
+          summary?: string | null
+          updated_at?: string | null
+          watchlist?: Json | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       has_role: {
