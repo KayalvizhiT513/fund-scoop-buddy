@@ -4,6 +4,7 @@ import {
   Bot,
   Layers3,
   Loader2,
+  LogOut,
   Radar,
   RefreshCw,
   Scale,
@@ -18,6 +19,8 @@ import { HoldingPill } from "@/components/newsletter/HoldingPill";
 import { SourceStatusCard } from "@/components/newsletter/SourceStatusCard";
 import { NewsletterItemCard } from "@/components/newsletter/NewsletterItemCard";
 import { ScoreBar } from "@/components/newsletter/ScoreBar";
+import { RunHistory } from "@/components/newsletter/RunHistory";
+import { useAuth } from "@/hooks/useAuth";
 
 const pipelineSteps = [
   {
