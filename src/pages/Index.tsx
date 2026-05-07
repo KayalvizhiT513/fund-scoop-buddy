@@ -46,9 +46,11 @@ const pipelineSteps = [
 ];
 
 const Index = () => {
+  const { user, signOut } = useAuth();
   const [data, setData] = useState<NewsletterResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [historyKey, setHistoryKey] = useState(0);
 
   const load = async () => {
     setLoading(true);
