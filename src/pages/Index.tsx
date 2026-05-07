@@ -80,7 +80,13 @@ const Index = () => {
     void load();
   }, []);
 
-  const totalItems = data?.newsletter?.sections?.reduce((sum, section) => sum + section.items.length, 0) ?? 0;
+  const portfolioHoldings = data?.portfolio?.holdings ?? [];
+  const newsletter = data?.newsletter;
+  const newsletterSections = newsletter?.sections ?? [];
+  const sourceRuns = data?.sourceRuns ?? [];
+  const evaluation = data?.evaluation;
+  const ruleLog = data?.ruleLog ?? [];
+  const totalItems = newsletterSections.reduce((sum, section) => sum + section.items.length, 0);
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -176,7 +182,7 @@ const Index = () => {
               />
               <MetricCard
                 label="Watchlist Cues"
-                value={data.newsletter?.watchlist?.length ?? 0}
+                value={newsletter?.watchlist?.length ?? 0}
                 caption="Entities and topics worth carrying into subsequent runs."
               />
             </section>
@@ -193,9 +199,14 @@ const Index = () => {
                   portfolio.
                 </p>
                 <div className="mt-6 flex flex-wrap gap-3">
-                  {data.portfolio.holdings.map((holding) => (
+                  {portfolioHoldings.map((holding) => (
                     <HoldingPill key={holding.id} holding={holding} />
                   ))}
+                  {portfolioHoldings.length === 0 && (
+                    <p className="text-sm leading-7 text-muted-foreground">
+                      No portfolio holdings were returned for this run.
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -231,7 +242,7 @@ const Index = () => {
                 </p>
                 <h2 className="mt-3 font-display text-3xl">Operational source status</h2>
                 <div className="mt-6 grid gap-4 md:grid-cols-2">
-                  {data.sourceRuns.map((run) => (
+                  {sourceRuns.map((run) => (
                     <SourceStatusCard key={run.source} run={run} />
                   ))}
                 </div>
@@ -243,14 +254,14 @@ const Index = () => {
                 </p>
                 <h2 className="mt-3 font-display text-3xl">Run quality checks</h2>
                 <div className="mt-6 space-y-5">
-                  <ScoreBar label="Grounding" value={data.evaluation.grounding} />
-                  <ScoreBar label="Relevance" value={data.evaluation.relevance} />
-                  <ScoreBar label="Usefulness" value={data.evaluation.usefulness} />
-                  <ScoreBar label="Style" value={data.evaluation.style} />
-                  <ScoreBar label="Compliance" value={data.evaluation.compliance} />
+                  <ScoreBar label="Grounding" value={evaluation?.grounding ?? 0} />
+                  <ScoreBar label="Relevance" value={evaluation?.relevance ?? 0} />
+                  <ScoreBar label="Usefulness" value={evaluation?.usefulness ?? 0} />
+                  <ScoreBar label="Style" value={evaluation?.style ?? 0} />
+                  <ScoreBar label="Compliance" value={evaluation?.compliance ?? 0} />
                 </div>
                 <div className="mt-6 rounded-[1.25rem] bg-secondary/45 p-4">
-                  {data.evaluation.notes.map((note) => (
+                  {(evaluation?.notes ?? []).map((note) => (
                     <p key={note} className="text-sm leading-7 text-muted-foreground">
                       {note}
                     </p>
@@ -265,9 +276,9 @@ const Index = () => {
               </p>
               <div className="mt-3 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
                 <div>
-                  <h2 className="font-display text-4xl">{data.newsletter.headline}</h2>
+                  <h2 className="font-display text-4xl">{newsletter?.headline ?? "Newsletter run"}</h2>
                   <p className="mt-3 max-w-3xl text-sm leading-7 text-muted-foreground">
-                    {data.newsletter.summary}
+                    {newsletter?.summary ?? "This run did not return a newsletter summary."}
                   </p>
                 </div>
                 <div className="rounded-[1.25rem] bg-secondary/45 px-4 py-3 text-sm text-muted-foreground">
@@ -276,7 +287,7 @@ const Index = () => {
               </div>
 
               <div className="mt-8 space-y-10">
-                {data.newsletter.sections.map((section) => (
+                {newsletterSections.map((section) => (
                   <div key={section.key}>
                     <div className="mb-5 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
                       <div>
@@ -307,7 +318,7 @@ const Index = () => {
                 </p>
                 <h2 className="mt-3 font-display text-3xl">Carry-forward entities</h2>
                 <div className="mt-6 flex flex-wrap gap-3">
-                  {(data.newsletter?.watchlist ?? []).map((item) => (
+                  {(newsletter?.watchlist ?? []).map((item) => (
                     <span
                       key={item}
                       className="rounded-full border border-border/70 bg-white px-3 py-2 text-sm text-foreground"
@@ -324,7 +335,7 @@ const Index = () => {
                 </p>
                 <h2 className="mt-3 font-display text-3xl">Deterministic guardrails</h2>
                 <div className="mt-6 space-y-3">
-                  {data.ruleLog.map((rule) => (
+                  {ruleLog.map((rule) => (
                     <div key={rule} className="rounded-[1.25rem] bg-secondary/45 p-4 text-sm leading-7 text-muted-foreground">
                       {rule}
                     </div>
