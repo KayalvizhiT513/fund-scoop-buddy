@@ -276,9 +276,9 @@ const Index = () => {
               </p>
               <div className="mt-3 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
                 <div>
-                  <h2 className="font-display text-4xl">{data.newsletter.headline}</h2>
+                  <h2 className="font-display text-4xl">{newsletter?.headline ?? "Newsletter run"}</h2>
                   <p className="mt-3 max-w-3xl text-sm leading-7 text-muted-foreground">
-                    {data.newsletter.summary}
+                    {newsletter?.summary ?? "This run did not return a newsletter summary."}
                   </p>
                 </div>
                 <div className="rounded-[1.25rem] bg-secondary/45 px-4 py-3 text-sm text-muted-foreground">
@@ -287,7 +287,7 @@ const Index = () => {
               </div>
 
               <div className="mt-8 space-y-10">
-                {data.newsletter.sections.map((section) => (
+                {newsletterSections.map((section) => (
                   <div key={section.key}>
                     <div className="mb-5 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
                       <div>
@@ -318,7 +318,7 @@ const Index = () => {
                 </p>
                 <h2 className="mt-3 font-display text-3xl">Carry-forward entities</h2>
                 <div className="mt-6 flex flex-wrap gap-3">
-                  {(data.newsletter?.watchlist ?? []).map((item) => (
+                  {(newsletter?.watchlist ?? []).map((item) => (
                     <span
                       key={item}
                       className="rounded-full border border-border/70 bg-white px-3 py-2 text-sm text-foreground"
@@ -335,7 +335,7 @@ const Index = () => {
                 </p>
                 <h2 className="mt-3 font-display text-3xl">Deterministic guardrails</h2>
                 <div className="mt-6 space-y-3">
-                  {data.ruleLog.map((rule) => (
+                  {ruleLog.map((rule) => (
                     <div key={rule} className="rounded-[1.25rem] bg-secondary/45 p-4 text-sm leading-7 text-muted-foreground">
                       {rule}
                     </div>
