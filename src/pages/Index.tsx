@@ -182,7 +182,7 @@ const Index = () => {
               />
               <MetricCard
                 label="Watchlist Cues"
-                value={data.newsletter?.watchlist?.length ?? 0}
+                value={newsletter?.watchlist?.length ?? 0}
                 caption="Entities and topics worth carrying into subsequent runs."
               />
             </section>
