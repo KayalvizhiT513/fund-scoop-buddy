@@ -87,6 +87,12 @@ const Index = () => {
       <div className="hero-mesh absolute inset-x-0 top-0 -z-10 h-[48rem]" />
 
       <header className="container max-w-7xl pt-8 md:pt-12">
+        <div className="mb-4 flex items-center justify-end gap-3 text-sm text-muted-foreground">
+          <span>{user?.email}</span>
+          <Button variant="outline" size="sm" onClick={() => void signOut()}>
+            <LogOut className="mr-2 h-4 w-4" /> Sign out
+          </Button>
+        </div>
         <div className="rounded-[2rem] border border-white/60 bg-white/72 px-6 py-6 shadow-[0_40px_120px_-70px_rgba(15,23,42,0.5)] backdrop-blur md:px-10 md:py-8">
           <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
             <div className="max-w-3xl">
