@@ -703,18 +703,215 @@ function evaluateRun(events: NormalizedEvent[], sourceRuns: SourceRun[]): Evalua
 }
 
 Deno.serve(async (req: Request) => {
+async function ensurePortfolio(admin: any, userId: string, portfolio: PortfolioInput): Promise<string> {
+  const { data: existing } = await admin
+    .schema("newsletter")
+    .from("portfolios")
+    .select("id")
+    .eq("user_id", userId)
+    .limit(1)
+    .maybeSingle();
+
+  if (existing?.id) return existing.id as string;
+
+  const { data: created, error } = await admin
+    .schema("newsletter")
+    .from("portfolios")
+    .insert({ user_id: userId, name: "Default Portfolio", is_synthetic: true })
+    .select("id")
+    .single();
+  if (error) throw error;
+
+  const portfolioId = created.id as string;
+  await admin.schema("newsletter").from("portfolio_holdings").insert(
+    portfolio.holdings.map((h) => ({
+      portfolio_id: portfolioId,
+      external_id: h.id,
+      holding_kind: h.kind,
+      name: h.name,
+      symbol: h.symbol ?? null,
+      fund_house: h.fundHouse ?? null,
+      sector: h.sector ?? null,
+      weight: h.weight,
+      themes: h.themes,
+      aliases: h.aliases,
+    })),
+  );
+  return portfolioId;
+}
+
+async function persistRun(
+  admin: any,
+  portfolioId: string,
+  runDate: string,
+  response: NewsletterResponse,
+  rawItems: RawItem[],
+): Promise<void> {
+  const ns = admin.schema("newsletter");
+  const overallStatus =
+    response.sourceRuns.some((s) => s.status === "error")
+      ? "partial"
+      : response.sourceRuns.some((s) => s.status === "degraded")
+      ? "partial"
+      : "completed";
+
+  // Upsert run
+  const { data: run, error: runErr } = await ns
+    .from("newsletter_runs")
+    .upsert(
+      {
+        portfolio_id: portfolioId,
+        run_date: runDate,
+        status: overallStatus,
+        headline: response.newsletter.headline,
+        summary: response.newsletter.summary,
+        raw_count: response.rawCount,
+        normalized_count: response.normalizedCount,
+        watchlist: response.newsletter.watchlist,
+        source_runs: response.sourceRuns,
+        rule_log: response.ruleLog,
+        completed_at: new Date().toISOString(),
+        started_at: new Date().toISOString(),
+      },
+      { onConflict: "portfolio_id,run_date" },
+    )
+    .select("id")
+    .single();
+  if (runErr) throw runErr;
+  const runId = run.id as string;
+
+  // Wipe children for idempotency
+  await ns.from("raw_items").delete().eq("run_id", runId);
+  await ns.from("newsletter_section_items").delete().in(
+    "section_id",
+    (await ns.from("newsletter_sections").select("id").eq("run_id", runId)).data?.map((s: any) => s.id) ?? [],
+  );
+  await ns.from("newsletter_sections").delete().eq("run_id", runId);
+  await ns.from("normalized_events").delete().eq("run_id", runId);
+  await ns.from("evaluations").delete().eq("run_id", runId);
+
+  // Insert raw items
+  if (rawItems.length) {
+    await ns.from("raw_items").insert(
+      rawItems.map((r) => ({
+        run_id: runId,
+        source_key: r.source,
+        source_type: r.sourceType,
+        external_id: r.id,
+        title: r.title,
+        snippet: r.summary,
+        url: r.url,
+        published_at: r.publishedAt,
+        topic: r.topic,
+      })),
+    );
+  }
+
+  // Insert events and remember mapping by external_id
+  const eventIdByExternal = new Map<string, string>();
+  if (response.items.length) {
+    const { data: insertedEvents, error: evErr } = await ns
+      .from("normalized_events")
+      .insert(
+        response.items.map((e) => ({
+          run_id: runId,
+          external_id: e.id,
+          event_type: e.eventType,
+          title: e.title,
+          summary: e.summary,
+          url: e.url,
+          source_key: e.source,
+          source_label: e.sourceLabel,
+          source_type: e.sourceType,
+          published_at: e.publishedAt,
+          topic: e.topic,
+          entities: e.entities,
+          why_it_matters: e.whyItMatters,
+          actionability: e.actionability,
+          matched_holding_ids: e.matchedHoldingIds,
+          relevance_score: e.relevance,
+          importance_score: e.importance,
+          final_score: e.score,
+        })),
+      )
+      .select("id, external_id");
+    if (evErr) throw evErr;
+    for (const row of insertedEvents ?? []) {
+      eventIdByExternal.set(row.external_id, row.id);
+    }
+  }
+
+  // Insert sections + items
+  for (let i = 0; i < response.newsletter.sections.length; i++) {
+    const section = response.newsletter.sections[i];
+    const { data: sec, error: sErr } = await ns
+      .from("newsletter_sections")
+      .insert({
+        run_id: runId,
+        section_key: section.key,
+        title: section.title,
+        description: section.description,
+        position: i,
+      })
+      .select("id")
+      .single();
+    if (sErr) throw sErr;
+    const items = section.items
+      .map((it, idx) => ({
+        section_id: sec.id,
+        event_id: eventIdByExternal.get(it.id),
+        position: idx,
+      }))
+      .filter((r) => r.event_id);
+    if (items.length) await ns.from("newsletter_section_items").insert(items);
+  }
+
+  // Evaluation
+  await ns.from("evaluations").insert({
+    run_id: runId,
+    evaluator_key: "deterministic",
+    grounding_score: response.evaluation.grounding,
+    relevance_score: response.evaluation.relevance,
+    usefulness_score: response.evaluation.usefulness,
+    style_score: response.evaluation.style,
+    compliance_score: response.evaluation.compliance,
+    notes: response.evaluation.notes,
+  });
+}
+
+Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
 
   try {
-    const body =
-      req.method === "POST"
-        ? await req.json().catch(() => ({}))
-        : {};
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return jsonResponse({ error: "Unauthorized" }, 401);
+    }
+    const token = authHeader.replace("Bearer ", "");
 
-    const incomingPortfolio = (body as { portfolio?: PortfolioInput }).portfolio;
-    const portfolio = incomingPortfolio?.holdings?.length ? incomingPortfolio : DEFAULT_PORTFOLIO;
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+    const userClient = createClient(supabaseUrl, anonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const { data: claims, error: claimsErr } = await userClient.auth.getClaims(token);
+    if (claimsErr || !claims?.claims?.sub) {
+      return jsonResponse({ error: "Unauthorized" }, 401);
+    }
+    const userId = claims.claims.sub as string;
+
+    const admin = createClient(supabaseUrl, serviceKey, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+
+    const body =
+      req.method === "POST" ? await req.json().catch(() => ({})) : {};
+
+    const portfolio = DEFAULT_PORTFOLIO;
     const runDate = buildRunDate(
       (body as { runDate?: string }).runDate ?? portfolio.runDate,
     );
@@ -759,12 +956,17 @@ Deno.serve(async (req: Request) => {
       ruleLog,
     };
 
+    try {
+      const portfolioId = await ensurePortfolio(admin, userId, portfolio);
+      await persistRun(admin, portfolioId, runDate, response, rawItems);
+    } catch (persistError) {
+      console.error("persist failed:", persistError);
+    }
+
     return jsonResponse(response);
   } catch (error) {
     return jsonResponse(
-      {
-        error: error instanceof Error ? error.message : "Unknown error",
-      },
+      { error: error instanceof Error ? error.message : "Unknown error" },
       500,
     );
   }
