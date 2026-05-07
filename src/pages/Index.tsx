@@ -332,6 +332,8 @@ const Index = () => {
                 </div>
               </div>
             </section>
+
+            <RunHistory refreshKey={historyKey} />
           </div>
         )}
       </main>
