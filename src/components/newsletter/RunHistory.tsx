@@ -19,9 +19,8 @@ export const RunHistory = ({ refreshKey }: { refreshKey: number }) => {
     let cancelled = false;
     (async () => {
       setLoading(true);
-      const { data } = await (supabase as any)
-        .schema("newsletter")
-        .from("newsletter_runs")
+      const { data } = await supabase
+        .from("newsletter_runs_view" as any)
         .select("id, run_date, status, headline, normalized_count, raw_count")
         .order("run_date", { ascending: false })
         .limit(14);
